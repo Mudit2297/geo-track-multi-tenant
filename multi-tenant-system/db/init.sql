@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS tenants (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    contact_email TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE IF NOT EXISTS locations (
+  id SERIAL PRIMARY KEY,
+  tenant_id UUID NOT NULL REFERENCES tenants(id),
+  latitude DOUBLE PRECISION,
+  longitude DOUBLE PRECISION,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

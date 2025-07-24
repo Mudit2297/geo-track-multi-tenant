@@ -1,0 +1,77 @@
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env  
+    volumes:
+      - pgdata:/Users/muditchauhan/go/workspace/mithril-def/multi-tenant-system
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+  
+  tenant-service:
+    build:
+      context: ./tenant-service
+      dockerfile: DOCKERFILE
+    container_name: tenant-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+    env_file:
+      - ./tenant-service/.env  
+    networks:
+      - backend
+    
+  location-service:
+    build:
+      context: ./location-service
+      dockerfile: DOCKERFILE
+    container_name: location-service
+    depends_on:
+      - postgres
+      - streaming-service
+    env_file:
+      - ./location-service/.env  
+    ports:
+      - "8082:8082"
+    networks:
+      - backend
+
+  streaming-service:
+    build:
+      context: ./streaming-service
+      dockerfile: DOCKERFILE
+    container_name: streaming-service
+    ports:
+      - "8083:8083"
+    networks:
+      - backend
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: DOCKERFILE
+    container_name: auth-service
+    ports:
+      - "8084:8084"
+    env_file:
+      - ./auth-service/.env
+    networks:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
+networks:
+  backend:
